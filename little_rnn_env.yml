@@ -1,0 +1,5 @@
+name: axelle_env
+channels:
+  - conda-forge
+  - defaults
+prefix: C:\Users\mario\anaconda3\envs\axelle_env\envs\axelle_env
