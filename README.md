@@ -46,3 +46,7 @@ To train an RNN :
 The code will store the results of your test in the folder "tests_results".
 
 </ol>
+
+## Scripts descriptions ##
+<li>  Visualize files generate gif displaying stim , emg and kin in sync.</li>
+<li>  SeeDatajoints generates pictures showing all signals available for every trial.</li>
