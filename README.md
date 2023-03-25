@@ -52,3 +52,4 @@ The code will store the results of your test in the folder "tests_results".
 <li>  SeeDatajoints.py generates pictures showing all signals available for every trial.</li>
 <li>  Quantify.py generates heatmaps for various data quantifications.</li>
 <li>  makeDataset.py generates files containing data for one or several selected trial.</li>
+<li>  newMG_biomechanicalAlice2.py is the file to run the biomechanical model.</li>
