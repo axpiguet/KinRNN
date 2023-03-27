@@ -130,13 +130,13 @@ def realign(femg_array: np.ndarray, stim_arrays: np.ndarray)->np.ndarray:
     n_samples = femg_array.shape[1]
     femg_array_realigned = np.zeros_like(femg_array)
     for experiment in range(len(femg_array)):
-        print(experiment)
+     
         cathode_index = np.argmax(np.max(stim_arrays[experiment,-1,:,:], axis=0)) # find the cathode (or max of cathodes)
         factor_stim = np.correlate(stim_arrays[experiment,-1,:,cathode_index], stim_arrays[experiment,-1,:,cathode_index], mode='same')[int(n_samples/2)]
         if factor_stim != 0:
             for muscle in range(len(MUSCLES)):
                 factor_emg = np.correlate(femg_array[experiment,:,muscle], femg_array[experiment,:,muscle], mode='same')[int(n_samples/2)]
-                #print(femg_array[experiment,:,muscle])
+                
                 cross_cor = np.correlate(stim_arrays[experiment,-1,:,cathode_index], femg_array[experiment,:,muscle], mode='same') / np.sqrt(factor_stim * factor_emg)
                 delay_arr = np.linspace(-0.5*n_samples, 0.5*n_samples, n_samples)
                 delay = delay_arr[np.argmax(cross_cor)] + MUSCLE_OFFSETS[muscle]
@@ -146,7 +146,7 @@ def realign(femg_array: np.ndarray, stim_arrays: np.ndarray)->np.ndarray:
 def realign_stim(femg_array: np.ndarray, stim_arrays: np.ndarray)->np.ndarray:
     femg_array_ = signal.resample(femg_array, num=stim_arrays.shape[2], axis = 2)#(14, length)
     n_samples = femg_array_.shape[2]
-    print('this should be big ' , n_samples)
+   
     stim_realigned = np.zeros_like(stim_arrays)
     for experiment in range(len(femg_array_)):
         cathode_index = np.argmax(np.max(stim_arrays[experiment,0,:,:], axis=0)) # find the cathode (or max of cathodes)
@@ -154,16 +154,16 @@ def realign_stim(femg_array: np.ndarray, stim_arrays: np.ndarray)->np.ndarray:
         if factor_stim != 0:
             for muscle in range(len(MUSCLES)):
                 factor_emg = np.correlate(femg_array_[experiment,muscle, :], femg_array_[experiment,muscle, : ], mode='same')[int(n_samples/2)]
-                #print(femg_array[experiment,:,muscle])
+               
                 cross_cor = np.correlate(stim_arrays[experiment,0,:,cathode_index], femg_array_[experiment,muscle,:], mode='same') / np.sqrt(factor_stim * factor_emg)
                 delay_arr = np.linspace(-0.5*n_samples, 0.5*n_samples, n_samples)
                 delay = delay_arr[np.argmax(cross_cor)] + MUSCLE_OFFSETS[muscle]
-                print('delay' , delay)
+               
                 stim_realigned[experiment,:,:,:] = np.roll(stim_arrays[experiment,:,:,:], -40*int(delay), axis =2)
     return stim_realigned
 
 def realign_stimUnit(femg_array: np.ndarray, stim_arrays: np.ndarray)->np.ndarray:      # emg = length x14     stim = length x 17
-    femg_array_ = signal.resample(femg_array, num=stim_arrays.shape[0], axis = 0)#(14, length)
+    femg_array_ = signal.resample(femg_array, num=stim_arrays.shape[0], axis = 0)
     n_samples = femg_array_.shape[0]
     print('this should be big ' , n_samples)
     stim_realigned = np.zeros_like(stim_arrays)
@@ -180,13 +180,12 @@ def realign_stimUnit(femg_array: np.ndarray, stim_arrays: np.ndarray)->np.ndarra
                 if np.max(femg_array_[:,muscle]) > max:
                     max = np.max(femg_array_[:,muscle])
                     chosen = muscle
-                #print(femg_array[experiment,:,muscle])
                 if muscle == chosen :
                     print(chosen)
                     cross_cor = np.correlate(stim_arrays[:,cathode_index], femg_array_[:,muscle], mode='same') / np.sqrt(factor_stim * factor_emg)
                     delay_arr = np.linspace(-0.5*n_samples, 0.5*n_samples, n_samples)
                     delay = delay_arr[np.argmax(cross_cor)] + MUSCLE_OFFSETS[muscle]
-                    print('delay' , delay)
+                    
             stim_realigned = np.roll(stim_arrays, -2*int(delay), axis =0)
     return stim_realigned, -2*int(delay)
 
@@ -195,6 +194,6 @@ def rolling(stim_arrays: np.ndarray,  triggerEMG :float)->np.ndarray: # stim = l
     cathode_index = np.argmax(np.max(stim_arrays, axis=0))
     thresh = np.max(stim_arrays[:,cathode_index])/2
     peaks = find_peaks(stim_arrays[:,cathode_index], height = thresh)
-    print(peaks[0])
+    
     begin = peaks[0][0]
     return np.roll(stim_arrays, -int(begin-triggerEMG+ 2.5*np.mean(MUSCLE_OFFSETS)), axis =0), -int(begin-triggerEMG+ 2.5*np.mean(MUSCLE_OFFSETS))
