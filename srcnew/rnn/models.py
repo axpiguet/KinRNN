@@ -59,21 +59,9 @@ class LSTM2NoBiomech(nn.Module):
         return {"B": self.lstm.weight_ih_l0, "J": self.lstm.weight_hh_l0 + self.lstm.weight_hh_l1, "W": self.fc.weight}
 
     def forward(self, input):
-        #input size : [1752, 1, 17])
         sig = nn.Sigmoid()
         lstm_output, _  = self.lstm(input) # (h0, c0) are initialized to zero
         output = self.fc(lstm_output)
-        #output size : [1752, 1, 6])
-        #print('out ' , np.shape(sig(output[:,0,:]).T))
-        #U = np.zeros((6, 1752)) + 0.5
-        #U = U + np.random.normal(0, 0.1 , 1752)/4
-        #U = torch.from_numpy(U.astype('float32'))
-        #angles, activations = self.biomech(sig(0.01*output[:,0,:]).T) #let's check if output is of size 6x 1
-        #angles, activations = self.biomech(U) #let's check if output is of size 6x 1
-        #print('angles : ' , np.shape(angles.T))
-        #print('activation ', np.shape(activations))
-        print('output ', np.shape(output))
-        print('lstm_output ', np.shape(lstm_output))
         return output.detach(), lstm_output.detach()
 
 
@@ -95,42 +83,22 @@ class LSTM2Biomech(nn.Module):
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers=2, dtype=torch.float32, dropout=0.5)
         self.fcpre = nn.Linear( hidden_size, 7, dtype=torch.float32, bias = False) #8 = GMax 9 = BF
         self.fcpreGMBF = nn.Linear( 7, 2, dtype=torch.float32, bias = False)
-        #self.fc = nn.Linear( 7, output_size, dtype=torch.float32, bias = False)
-        #self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[3.7, 0.0, 2.0, 1.0, 2.0, 1.0, 1.5]], device = device_), requires_grad=True)
-        #self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[3.000000000, 0.000000000, 1.500000000, 0.200000000, 2.000000000, 0.500000000, 5.500000000]], device = device_, requires_grad=True))
-        #self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[4.4251,  0.0000, 2.2824,  0.3798,0.5122,  0.3708,  3.5845]], device = device_, requires_grad=True))
-        #self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[3.8275, 0.2000, 2.2545, 0.0754, 0.00583, 0.02671, 0.7779]], device = device_, requires_grad=True))
-         #self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[3.0, 0.2,  2.1601e+00,  0.5, 0.005,0.4, 2.0]], device = device_, requires_grad=True))
-         ##self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[2/100, 1/100,  2/100,  2/100, 2/100,2/100, 2/100]], device = device_, requires_grad=True))
-        #self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[10/100, 24/100,  1.5/100,  1/100, 4/100,30/100, 30/100]], device = device_, requires_grad=True))
-        #oooooself.fc = torch.nn.parameter.Parameter(data=torch.tensor([[100/1000, 24/1000,  30/100,  50/1000, 55/1000,30/1000, 30/1000]], device = device_, requires_grad=True))
-        #self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[9.9/124, 7.3/63, 5.8/141, 0.5/86, 2.6/79, 0.5/120, 10.01/101]], device = device_, requires_grad=True))
         self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[3.9/100, 7.3/100, 5.8/100, 0.5/100, 2.6/100, 0.5/100, 4.01/100]], device = device_, requires_grad=True))
-        #self.fc = torch.tensor([[5.9/100, 7.3/100, 5.8/100, 0.5/100, 2.6/100, 0.5/100, 10.01/100]], device = device_)
-        #self.fc = torch.nn.parameter.Parameter(data=torch.tensor([[25/100, 1/100,1/100, 23.5/100, 88.1/100, 70/100, 120/100]], device = device_, requires_grad=True))
-
-
-        #["Il", "GM", "RF", "ST", "VLat", 'BF', "MG"]
-        #torch.nn.init.xavier_uniform_(self.fc.weight , gain=20)
-
-        #torch.nn.init.xavier_uniform_(self.fc.weight , gain=10)
+        
         torch.nn.init.xavier_uniform_(self.fcpreGMBF.weight , gain=1)
         torch.nn.init.xavier_uniform_(self.fcpre.weight , gain=200)#500)#1)
         nn.init.xavier_uniform_(self.lstm.weight_ih_l0, gain=0.1)
         nn.init.xavier_uniform_(self.lstm.weight_hh_l0,gain=0.1)
         nn.init.xavier_uniform_(self.lstm.weight_ih_l1,gain=1)#2
         nn.init.xavier_uniform_(self.lstm.weight_hh_l1,gain=1)
-        nn.init.constant_(self.lstm.bias_ih_l0,0.01)#0.5)
-        nn.init.constant_(self.lstm.bias_hh_l0,0.01)# 0.5)
-        nn.init.constant_(self.lstm.bias_ih_l1 ,0.01)# 0.5)
-        nn.init.constant_(self.lstm.bias_hh_l1 , 0.01)#0.5)
+        nn.init.constant_(self.lstm.bias_ih_l0,0.01)
+        nn.init.constant_(self.lstm.bias_hh_l0,0.01)
+        nn.init.constant_(self.lstm.bias_ih_l1 ,0.01)
+        nn.init.constant_(self.lstm.bias_hh_l1 , 0.01)
         pretrain = True
         if pretrain :
-            #self.fcpre.weight.data[0:7, :] = torch.load( 'over40fcpreW.pt')
             self.fcpre.weight.data = torch.load( 'overfcpreW.pt')
             self.fcpreGMBF.weight.data = torch.load( 'overfcpreGMBFW.pt')
-            #self.fcpre.weight.data[7, :] = torch.load( '40fcpreW.pt')[3]
-            #self.fcpre.weight.data[8, :] = torch.load( '40fcpreW.pt')[3]
             self.lstm.bias_ih_l0.data = torch.load( 'over40biasihl0.pt')
             self.lstm.bias_hh_l0.data = torch.load('over40biashhl0.pt')
             self.lstm.bias_ih_l1.data = torch.load( 'over40biasihl1.pt')
@@ -139,10 +107,6 @@ class LSTM2Biomech(nn.Module):
             self.lstm.weight_hh_l0.data = torch.load( 'over40weighthhl0.pt')
             self.lstm.weight_ih_l1.data = torch.load( 'over40weightihl1.pt')
             self.lstm.weight_hh_l1.data = torch.load( 'over40weighthhl1.pt')
-        #self.fc.bias.data = torch.load('fcpreB.pt')
-        #self.fc.weight.data = torch.load('fcpreW.pt')
-        #self.fc.bias.data = torch.load('fcB.pt')
-        #self.fc.weight.data = torch.load('fcW.pt')
 
         self.biomech =  m.crazyleg2(hip0 ,knee0 , dt_ = dt)
         self.theta0hip =  self.biomech.get_theta0()[0][0]
@@ -162,8 +126,6 @@ class LSTM2Biomech(nn.Module):
     def save_pretrain(self):
         torch.save(self.fcpre.weight , 'over40fcpreW.pt')
         torch.save(self.fcpreGMBF.weight , 'over40fcpreGMBFW.pt')
-        #torch.save(self.fc.weight, 'fcW.pt')
-        #torch.save(self.fc, 'fcW.pt')
         torch.save(self.lstm.bias_ih_l0 , 'over40biasihl0.pt')
         torch.save(self.lstm.bias_hh_l0 , 'over40biashhl0.pt')
         torch.save(self.lstm.bias_ih_l1 , 'over40biasihl1.pt')
@@ -177,8 +139,6 @@ class LSTM2Biomech(nn.Module):
         return {"B": self.lstm.weight_ih_l0, "J": self.lstm.weight_hh_l0 + self.lstm.weight_hh_l1, "W": self.fcpre.weight}
 
     def get_inBiomech(self,out):
-        #out_ = torch.sqrt(self.sigmoid_(torch.abs(torch.from_numpy(hilbert(out.detach().numpy(), axis = 1)).float())))
-        #out_  = out.clone()#torch.from_numpy(signal.filtfilt(self.b2, self.a2, torch.abs(self.sigmoid_(out.clone().detach())).numpy() ,axis = 0).copy()).float()
         out_  = torch.from_numpy(signal.filtfilt(self.b2, self.a2, torch.abs(self.sigmoid_(out.clone().detach())).numpy() ,axis = 0).copy())
         out2 = self.fcpreGMBF(out_.float())
         matched_ = torch.zeros(np.shape(out_[:,:,0:7]))
@@ -186,27 +146,14 @@ class LSTM2Biomech(nn.Module):
         matched_[:,:,2] = out_[:,:,1]
         matched_[:,:,3] = out_[:,:,3]
         matched_[:,:,4] = out_[:,:,2]
-        #matched_[:,:,5] = out_[:,:,3]
         matched_[:,:,6] = out_[:,:,5]
-        #matched_[:,:,1] = 3/(1+ torch.exp(-(10*out.clone()[:,:,7]-7)/2)) #Gmax
-        #matched_[:,:,5] =  3/(1+ torch.exp(-(10*out.clone()[:,:,8]-7)/2)) #BF
         matched_[:,:,1] = 0.5*out2.clone()[:,:,0]  #Gmax
-        matched_[:,:,5] =  out2.clone()[:,:,1] #BF
-
-
-        #[0, None, 1, 3, 2, 3, 5]
+        matched_[:,:,5] =  out2.cl
         matched_out_ = matched_.clone()
-
-        #output = self.fc(matched_out_)
         output = torch.mul(matched_out_ , self.fc)
-        #output[:,:,5] = output[:,:,5]- torch.mean(output[:,:,5], 0)
-        #sig = nn.Sigmoid()
-        #output = self.fc(sig(torch.abs(out)))
-        #output[:,:,1]=0*output[:,:,1]
         return torch.abs(output)
 
     def sigmoid_(self, x):
-        #return 1.0 / (1.0 + np.exp(-(x-50)/10))
         return -1 + 2.0 / (1.0 + torch.exp(-(x)/5))
 
     def show_grad(self):
@@ -227,22 +174,12 @@ class LSTM2Biomech(nn.Module):
 
 
     def forward(self, input):
-
-        #input size : [1752, 1, 17])
         sig = nn.Sigmoid()
         lstm_output, _  = self.lstm(input) # (h0, c0) are initialized to zero
 
         out = self.fcpre(lstm_output.clone())#.detach())
-
-        # ATTENTION GROS CHANGEMENT : LE DETACH
-        #out_ = torch.sqrt(self.sigmoid_(torch.abs(torch.from_numpy(hilbert(out.detach().numpy(), axis = 1)).float())))
-
-        #out_  = torch.from_numpy(signal.filtfilt(self.b2, self.a2, torch.abs(self.sigmoid_(out.clone().detach())).numpy() ,axis = 0).copy())#.float()
         out_=out.clone()
         out2 = self.fcpreGMBF(out_.float())
-        #out_ = out.clone().detach()
-        #output = self.fc(sig(torch.abs(out)))
-        #make matching #"Il", "GM", "RF", "ST", "VLat", 'BF', "MG"
         matched_ = torch.zeros(np.shape(out_[:,:,0:7]))
         matched_[:,:,0] = out_[:,:,0]
         matched_[:,:,2] = out_[:,:,1]
@@ -250,49 +187,23 @@ class LSTM2Biomech(nn.Module):
         matched_[:,:,4] = out_[:,:,2]
         matched_[:,:,5] = out_[:,:,3]
         matched_[:,:,6] = out_[:,:,5]
-        #matched_[:,:,5] = out_[:,:,3]
         matched_[:,:,1] =  out2.clone()[:,:,0]  #Gmax
         matched_[:,:,5] =  out2.clone()[:,:,1] #BF
-        #[0, None, 1, 3, 2, 3, 5]
-        matched_out_ = matched_.clone()#.requires_grad_(True)
-
-        #output = self.fc(matched_out_)
-
+       
+        matched_out_ = matched_.clone()
         output = torch.mul(torch.abs(matched_out_ ), torch.abs(self.fc))
-        #output[:,:,5] = torch.abs(output[:,:,5]- torch.mean(output[:,:,5], 0))
-        ##output[:,:,5] =  1/(1+ torch.exp(-output[:,:,5]/0.2))
-        #output[:,:,1] = torch.abs(output[:,:,1]- torch.mean(output[:,:,1], 0))
-        ##output[:,:,1] =  1/(1+ torch.exp(-output[:,:,1]/0.2))
-        #output[:,:,1] = 3/(1+ torch.exp(-(10*output[:,:,1]-7)/2)) #Gmax
-        #output[:,:,5] = 3/(1+ torch.exp(-(10*output[:,:,5]-7)/2)) #BF
-
-
-
-        #output = torch.mul(matched_out_ , torch.tensor([[1.0, 0.0, 1.5, 0.2, 2.0, 0.5, 5.5]]))
-        #["Il", "GM", "RF", "ST", "VLat", 'BF', "MG"]
-        #output[:,:,1]=0*output[:,:,1]
-        #output size : [1752, 1, 6])
-        #U = U + np.random.normal(0, 0.1 , 1752)/4
-        #U = torch.from_numpy(U.astype('float32'))
-        #angles, activations = self.biomech(output[:,0,:].T) #let's check if output is of size 6x 1
-
+    
 ###########
-        #angles = torch.permute(output[:,:,0:2], (2,1,0))
+      
         angles, activations = self.biomech(torch.abs(torch.permute(output, (2,1,0)))) #let's check if output is of size 6x 1
 
 #############
-        self.readout = angles.clone()#.requires_grad_(True)
-        #angles, activations = self.biomech(U) #let's check if output is of size 6x 1
+        self.readout = angles.clone()
         ang = torch.permute(self.readout, (2,1,0))
-        ang[:,:,1] = ang.clone()[:,:,1] - ang.clone()[:,:,0] - self.theta0knee#+math.radians(80)
-        ang[:,:,0] = ang.clone()[:,:,0] - math.pi/2 - self.theta0hip #+ math.radians(10)
-        #angles_ = 0.1*torch.rad2deg(ang)# - torch.tensor([[[0], [90]]] , device = angles.device)
-        angles_ = torch.rad2deg(ang)# - torch.tensor([[[0], [90]]] , device = angles.device)
-        #return torch.rad2deg(angles.T.detach()), output.detach()
-        return angles_ , self.fcpre(lstm_output)#out
-
-
-
+        ang[:,:,1] = ang.clone()[:,:,1] - ang.clone()[:,:,0] - self.theta0knee
+        ang[:,:,0] = ang.clone()[:,:,0] - math.pi/2 - self.theta0hip
+        angles_ = torch.rad2deg(ang)
+        return angles_ , self.fcpre(lstm_output)
 
 
 class LSTM2(nn.Module):
