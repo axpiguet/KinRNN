@@ -44,6 +44,7 @@ To train an RNN :
 <li> To lauch the training type in the source folder "python main_rnn_training.py "{name_of_your_test}".</li>
 
 The code will store the results of your test in the folder "tests_results".
+<li> To lauch the training of the stim-to-kin rnn, enter "python main_rnn_EMGtoKin.py".</li>
 
 </ol>
 
