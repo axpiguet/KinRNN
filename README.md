@@ -2,7 +2,7 @@
 
 This project, which started as an internship and later became my master thesis, focuses on helping spinal cord injury patients regain their ability to walk. These patients are implanted with a neurostimulator that uses epidural electrical stimulation (EES) to activate the muscles in their lower limbs. However, fine-tuning the electrical parameters to reproduce natural walking motion is a complex challenge.
 
-To tackle this, we developed AI models (like LSTMs and RNNs, see model.py) to predict muscle activity based on stimulation parameters. We then coupled these predictions with biomechanical modeling (biomechanical.py) to simulate the resulting walking motion. The result is a framework that bridges neuroscience, biomechanics, and AI to bring us closer to restoring mobility for those who need it most.
+To tackle this, we implemented from scratch and experimented different AI models (like LSTMs and RNNs ..., see model.py) to predict muscle activity based on stimulation parameters. We then coupled these predictions with biomechanical modeling (biomechanical.py) to simulate the resulting walking motion. The result is a framework that bridges neuroscience, biomechanics, and AI to bring us closer to restoring mobility for those who need it most.
 ![best cathode](images/biiig.png)
 
 
