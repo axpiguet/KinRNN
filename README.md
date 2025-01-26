@@ -1,4 +1,4 @@
-# little_RNN
+# Kin_RNN
 
 ## Environment creation ##
 
@@ -26,9 +26,9 @@ conda update --all
 
 ## Data ## 
 
-<li> Next to the src folder create a folder named "tests_results". Put your data folder in "tests_results".</li>
+<li> Next to the srcnew folder create a folder named "tests_results". Put your data folder in "tests_results".</li>
 
-Your data should be a dataframe which raws are trials and colums parameters. For each muscle, an associated column should contain the arrays of EMG recordings. 
+Your data should be a dataframe in which rows are trials and colums parameters. For each muscle, an associated column should contain the arrays of EMG recordings. 
 The data should be pre-filtered and normalized per muscle. 
 
 ## Training an RNN ## 
